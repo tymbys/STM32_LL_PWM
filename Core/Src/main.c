@@ -48,7 +48,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+uint32_t aCCValue[steps] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,15 +102,24 @@ int main(void)
 
   //Configure_TIMPWMOutput();
 
+  //fill_sine();
+
   Configure_DMA();
   Configure_TIM_PWM_DMA();
+  //Configure_TIM_test1();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int i=0;
   while (1)
   {
+	  //LL_TIM_OC_SetCompareCH1(TIM4, aCCValue[i]);
+	  LL_mDelay(1000);
+	  //i++;
+	  //if(i>2) i=0;
+
 
   /* USER CODE END WHILE */
 

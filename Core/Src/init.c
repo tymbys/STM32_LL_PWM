@@ -1,9 +1,13 @@
 #include "init.h"
 
 
-#define CC_VALUE_NB       10
-static uint32_t aCCValue[CC_VALUE_NB] = {0};
+//#define CC_VALUE_NB       100
+//static uint32_t aCCValue[CC_VALUE_NB] = {0};
 
+#define CC_VALUE_NB       steps
+
+extern uint32_t aCCValue[steps];
+//static uint32_t aCCValue[1000] = {0};
 
 static uint32_t TimOutClock = 1;
 
@@ -178,7 +182,7 @@ void Configure_TIMPWMOutput_4ch(void) {
 	/* Reset value is LL_TIM_OCMODE_FROZEN */
 	LL_TIM_OC_SetMode(TIM4, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_PWM1);
 	LL_TIM_OC_SetMode(TIM4, LL_TIM_CHANNEL_CH2, LL_TIM_OCMODE_PWM1);
-	LL_TIM_OC_SetMode(TIM4, LL_TIM_CHANNEL_CH3, LL_TIM_OCMODE_PWM1);
+	LL_TIM_OC_SetMode(TIM4, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_PWM1);
 	LL_TIM_OC_SetMode(TIM4, LL_TIM_CHANNEL_CH4, LL_TIM_OCMODE_PWM1);
 
 	/* Set output channel polarity */
@@ -187,7 +191,7 @@ void Configure_TIMPWMOutput_4ch(void) {
 	/* Set compare value to half of the counter period (50% duty cycle ) */
 	LL_TIM_OC_SetCompareCH1(TIM4, ((LL_TIM_GetAutoReload(TIM4) + 1) / 2));
 	LL_TIM_OC_SetCompareCH2(TIM4, ((LL_TIM_GetAutoReload(TIM4) + 1) / 4));
-	LL_TIM_OC_SetCompareCH3(TIM4, ((LL_TIM_GetAutoReload(TIM4) + 1) / 6));
+	LL_TIM_OC_SetCompareCH1(TIM4, ((LL_TIM_GetAutoReload(TIM4) + 1) / 6));
 	LL_TIM_OC_SetCompareCH4(TIM4, ((LL_TIM_GetAutoReload(TIM4) + 1) / 8));
 
 	/* Enable TIM2_CCR1 register preload. Read/Write operations access the      */
@@ -195,7 +199,7 @@ void Configure_TIMPWMOutput_4ch(void) {
 	/* at each update event.                                                    */
 	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH1);
 	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH2);
-	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH3);
+	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH1);
 	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH4);
 
 	/**************************/
@@ -210,7 +214,7 @@ void Configure_TIMPWMOutput_4ch(void) {
 	/* Enable output channel 1 */
 	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH1);
 	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH2);
-	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH3);
+	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH1);
 	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH4);
 
 	/* Enable counter */
@@ -227,7 +231,14 @@ void  Configure_DMA(void)
   /* Configure NVIC for DMA transfer related interrupts */
   /******************************************************/
   NVIC_SetPriority(DMA1_Channel1_IRQn, 0);
+  NVIC_SetPriority(DMA1_Channel2_IRQn, 0);
+  NVIC_SetPriority(DMA1_Channel3_IRQn, 0);
+  NVIC_SetPriority(DMA1_Channel4_IRQn, 0);
+
   NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  NVIC_EnableIRQ(DMA1_Channel4_IRQn);
 
   /*****************************/
   /* Peripheral clock enabling */
@@ -244,16 +255,56 @@ void  Configure_DMA(void)
                                                 LL_DMA_MEMORY_INCREMENT           |
                                                 LL_DMA_PDATAALIGN_WORD            |
                                                 LL_DMA_MDATAALIGN_WORD);
+  LL_DMA_ConfigTransfer(DMA1, LL_DMA_CHANNEL_2, LL_DMA_DIRECTION_MEMORY_TO_PERIPH |
+                                                LL_DMA_PRIORITY_HIGH              |
+                                                LL_DMA_MODE_CIRCULAR              |
+                                                LL_DMA_PERIPH_NOINCREMENT         |
+                                                LL_DMA_MEMORY_INCREMENT           |
+                                                LL_DMA_PDATAALIGN_WORD            |
+                                                LL_DMA_MDATAALIGN_WORD);
+  LL_DMA_ConfigTransfer(DMA1, LL_DMA_CHANNEL_3, LL_DMA_DIRECTION_MEMORY_TO_PERIPH |
+                                                LL_DMA_PRIORITY_HIGH              |
+                                                LL_DMA_MODE_CIRCULAR              |
+                                                LL_DMA_PERIPH_NOINCREMENT         |
+                                                LL_DMA_MEMORY_INCREMENT           |
+                                                LL_DMA_PDATAALIGN_WORD            |
+                                                LL_DMA_MDATAALIGN_WORD);
+  LL_DMA_ConfigTransfer(DMA1, LL_DMA_CHANNEL_4, LL_DMA_DIRECTION_MEMORY_TO_PERIPH |
+                                                LL_DMA_PRIORITY_HIGH              |
+                                                LL_DMA_MODE_CIRCULAR              |
+                                                LL_DMA_PERIPH_NOINCREMENT         |
+                                                LL_DMA_MEMORY_INCREMENT           |
+                                                LL_DMA_PDATAALIGN_WORD            |
+                                                LL_DMA_MDATAALIGN_WORD);
+
 
   LL_DMA_ConfigAddresses(DMA1, LL_DMA_CHANNEL_1, (uint32_t)&aCCValue, (uint32_t)&TIM4->CCR1, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_1));
+  LL_DMA_ConfigAddresses(DMA1, LL_DMA_CHANNEL_2, (uint32_t)&aCCValue, (uint32_t)&TIM4->CCR2, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_2));
+  LL_DMA_ConfigAddresses(DMA1, LL_DMA_CHANNEL_3, (uint32_t)&aCCValue, (uint32_t)&TIM4->CCR3, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_3));
+  LL_DMA_ConfigAddresses(DMA1, LL_DMA_CHANNEL_4, (uint32_t)&aCCValue, (uint32_t)&TIM4->CCR4, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_4));
+
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_1, CC_VALUE_NB);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_2, CC_VALUE_NB);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_3, CC_VALUE_NB);
+  LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_4, CC_VALUE_NB);
+
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_3);
+  LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_4);
+
   LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_3);
+  LL_DMA_EnableIT_TE(DMA1, LL_DMA_CHANNEL_4);
 
   /***************************/
   /* Enable the DMA transfer */
   /***************************/
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_1);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_2);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_3);
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_4);
 }
 
 void Configure_TIM_PWM_DMA(void)
@@ -264,7 +315,166 @@ void Configure_TIM_PWM_DMA(void)
   /* Enable the peripheral clock of GPIOs */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
 
-  /* GPIO TIM4_CH3 configuration */
+  /* GPIO TIM4_CH1 configuration */
+//  LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_6, LL_GPIO_MODE_ALTERNATE);
+//  LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_6, LL_GPIO_PULL_DOWN);
+//  LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_6, LL_GPIO_SPEED_FREQ_HIGH);
+
+
+  LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+  	GPIO_InitStruct.Pin = LL_GPIO_PIN_6 | LL_GPIO_PIN_7 | LL_GPIO_PIN_8	| LL_GPIO_PIN_9;
+  	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+  	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+
+  /******************************************************/
+  /* Configure the NVIC to handle TIM4 update interrupt */
+  /******************************************************/
+  NVIC_SetPriority(TIM4_IRQn, 0);
+  NVIC_EnableIRQ(TIM4_IRQn);
+
+  /******************************/
+  /* Peripheral clocks enabling */
+  /******************************/
+  /* Enable the peripheral clock of TIM4 */
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM4);
+
+  /***************************/
+  /* Time base configuration */
+  /***************************/
+  /* Set counter mode */
+  /* Reset value is LL_TIM_COUNTERMODE_UP */
+  //LL_TIM_SetCounterMode(TIM4, LL_TIM_COUNTERMODE_UP);
+
+  /* Set the TIM4 auto-reload register to get a PWM frequency at 17.57 KHz */
+  /* Note that the timer pre-scaler isn't used, therefore the timer counter   */
+  /* clock frequency is equal to the timer frequency.                        */
+    /* In this example TIM4 input clock (TIM4CLK) frequency is set to APB1 clock*/
+  /*  (PCLK1), since APB1 pre-scaler is equal to 2 and it is twice PCLK2.                        */
+  /*    TIM4CLK = PCLK2                                                     */
+  /*    PCLK2 = HCLK                                                        */
+  /*    => TIM4CLK = HCLK = SystemCoreClock (72 Mhz)                       */
+
+  /* TIM4CLK = SystemCoreClock / (APB prescaler & multiplier)              */
+  TimOutClock = SystemCoreClock/1;
+  LL_TIM_SetAutoReload(TIM4, __LL_TIM_CALC_ARR(TimOutClock, LL_TIM_COUNTERMODE_UP, PWM_Freq));
+
+  /* Set the repetition counter in order to generate one update event every 4 */
+  /* counter cycles.                                                          */
+  //LL_TIM_SetRepetitionCounter(TIM4, 10-1);
+  LL_TIM_SetRepetitionCounter(TIM4, 100);
+
+  /*********************************/
+  /* Output waveform configuration */
+  /*********************************/
+  /* Set output channel 3 in PWM1 mode */
+  LL_TIM_OC_SetMode(TIM4,  LL_TIM_CHANNEL_CH1,  LL_TIM_OCMODE_PWM1);
+  LL_TIM_OC_SetMode(TIM4,  LL_TIM_CHANNEL_CH2,  LL_TIM_OCMODE_PWM1);
+  LL_TIM_OC_SetMode(TIM4,  LL_TIM_CHANNEL_CH3,  LL_TIM_OCMODE_PWM1);
+  LL_TIM_OC_SetMode(TIM4,  LL_TIM_CHANNEL_CH4,  LL_TIM_OCMODE_PWM1);
+
+  /* TIM4 channel 3 configuration:    */
+  LL_TIM_OC_ConfigOutput(TIM4, LL_TIM_CHANNEL_CH1, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
+  LL_TIM_OC_ConfigOutput(TIM4, LL_TIM_CHANNEL_CH2, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
+  LL_TIM_OC_ConfigOutput(TIM4, LL_TIM_CHANNEL_CH3, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
+  LL_TIM_OC_ConfigOutput(TIM4, LL_TIM_CHANNEL_CH4, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
+
+  /* Compute compare value to generate a duty cycle at 90% - 0% */
+//  aCCValue[0] = (uint32_t)(((uint32_t) 90 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[1] = (uint32_t)(((uint32_t) 80 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[2] = (uint32_t)(((uint32_t) 70 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[3] = (uint32_t)(((uint32_t) 60 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[4] = (uint32_t)(((uint32_t) 50 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[5] = (uint32_t)(((uint32_t) 40 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[6] = (uint32_t)(((uint32_t) 30 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[7] = (uint32_t)(((uint32_t) 20 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[8] = (uint32_t)(((uint32_t) 10 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  aCCValue[9] = (uint32_t)(((uint32_t) 0 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+
+//  for(int i=0; i<100; i++){
+//	  if (i >=50 )
+//		  aCCValue[i] = (uint32_t)(((uint32_t) (100 -i) * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//	  else
+//		  aCCValue[i] = (uint32_t)(((uint32_t) i * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  }
+
+  LL_mDelay(1000);
+  fill_sine();
+
+
+
+  /* Set PWM duty cycle  for TIM4 channel 3*/
+  LL_TIM_OC_SetCompareCH1(TIM4, aCCValue[0]);
+  LL_TIM_OC_SetCompareCH2(TIM4, aCCValue[0]);
+  LL_TIM_OC_SetCompareCH3(TIM4, aCCValue[0]);
+  LL_TIM_OC_SetCompareCH4(TIM4, aCCValue[0]);
+
+
+  /* Enable register preload for TIM4 channel 3 */
+  LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH1);
+	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH2);
+	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH3);
+	LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH4);
+
+  /****************************/
+  /* TIM4 DMA requests set-up */
+  /****************************/
+  /* Enable DMA request on update event */
+  LL_TIM_EnableDMAReq_UPDATE(TIM4);
+
+  /* Enable TIM4 Channel 3 DMA request */
+  LL_TIM_EnableDMAReq_CC1(TIM4);
+  LL_TIM_EnableDMAReq_CC2(TIM4);
+  LL_TIM_EnableDMAReq_CC3(TIM4);
+  LL_TIM_EnableDMAReq_CC4(TIM4);
+
+  /**********************************/
+  /* Start output signal generation */
+  /**********************************/
+  /* Enable TIM4 channel 3 */
+  LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH1);
+  LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH2);
+  LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH3);
+  LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH4);
+
+  /* Enable TIM4 outputs */
+  LL_TIM_EnableAllOutputs(TIM4);
+
+  /* Enable counter */
+  LL_TIM_EnableCounter(TIM4);
+
+  /* Force update generation */
+  LL_TIM_GenerateEvent_UPDATE(TIM4);
+}
+
+
+void fill_sine()
+{
+	float l=pi/steps;
+	uint32_t ARR = LL_TIM_GetAutoReload(TIM4);
+	for(int i = 0; i<steps; i++){
+		//aCCValue[i] = (uint16_t)(fabs(sin((i + 2) * pi / steps)) * precision);
+		//aCCValue[i] = (sin((2*3.14f*i)/steps) + 1 ) * precision;
+		aCCValue[i] = (sin((2*3.14f*i)/steps) + 1 ) * precision;
+		//aCCValue[i] =i*100;
+
+		//aCCValue[i] = (uint32_t)(((uint32_t) (i) * (ARR - 1)) / 100);
+	}
+}
+
+
+void  Configure_TIM_test1(void)
+{
+  /*************************/
+  /* GPIO AF configuration */
+  /*************************/
+  /* Enable the peripheral clock of GPIOs */
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
+
+  /* GPIO TIM4_CH1 configuration */
   LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_6, LL_GPIO_MODE_ALTERNATE);
   LL_GPIO_SetPinPull(GPIOB, LL_GPIO_PIN_6, LL_GPIO_PULL_DOWN);
   LL_GPIO_SetPinSpeed(GPIOB, LL_GPIO_PIN_6, LL_GPIO_SPEED_FREQ_HIGH);
@@ -299,11 +509,12 @@ void Configure_TIM_PWM_DMA(void)
 
   /* TIM4CLK = SystemCoreClock / (APB prescaler & multiplier)              */
   TimOutClock = SystemCoreClock/1;
-  LL_TIM_SetAutoReload(TIM4, __LL_TIM_CALC_ARR(TimOutClock, LL_TIM_COUNTERMODE_UP, 100));
+  LL_TIM_SetAutoReload(TIM4, __LL_TIM_CALC_ARR(TimOutClock, LL_TIM_COUNTERMODE_UP, 200000));
 
   /* Set the repetition counter in order to generate one update event every 4 */
   /* counter cycles.                                                          */
-  LL_TIM_SetRepetitionCounter(TIM4, 10-1);
+  //LL_TIM_SetRepetitionCounter(TIM4, 4-1);
+  //LL_TIM_SetRepetitionCounter(TIM4, 1);
 
   /*********************************/
   /* Output waveform configuration */
@@ -314,20 +525,17 @@ void Configure_TIM_PWM_DMA(void)
   /* TIM4 channel 3 configuration:    */
   LL_TIM_OC_ConfigOutput(TIM4, LL_TIM_CHANNEL_CH1, LL_TIM_OCPOLARITY_HIGH | LL_TIM_OCIDLESTATE_HIGH);
 
-  /* Compute compare value to generate a duty cycle at 90% - 0% */
-  aCCValue[0] = (uint32_t)(((uint32_t) 90 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[1] = (uint32_t)(((uint32_t) 80 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[2] = (uint32_t)(((uint32_t) 70 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[3] = (uint32_t)(((uint32_t) 60 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[4] = (uint32_t)(((uint32_t) 50 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[5] = (uint32_t)(((uint32_t) 40 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[6] = (uint32_t)(((uint32_t) 30 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[7] = (uint32_t)(((uint32_t) 20 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[8] = (uint32_t)(((uint32_t) 10 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
-  aCCValue[9] = (uint32_t)(((uint32_t) 0 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  /* Compute compare value to generate a duty cycle at 75% */
+//  aCCValue[0] = (uint32_t)(((uint32_t) 75 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  /* Compute compare value to generate a duty cycle at 50% */
+//  aCCValue[1] = (uint32_t)(((uint32_t) 50 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+//  /* Compute compare value to generate a duty cycle at 25% */
+//  aCCValue[2] = (uint32_t)(((uint32_t) 25 * (LL_TIM_GetAutoReload(TIM4) - 1)) / 100);
+
+  fill_sine();
 
   /* Set PWM duty cycle  for TIM4 channel 3*/
-  LL_TIM_OC_SetCompareCH3(TIM4, aCCValue[0]);
+  LL_TIM_OC_SetCompareCH1(TIM4, aCCValue[0]);
 
   /* Enable register preload for TIM4 channel 3 */
   LL_TIM_OC_EnablePreload(TIM4, LL_TIM_CHANNEL_CH1);
@@ -339,7 +547,7 @@ void Configure_TIM_PWM_DMA(void)
   LL_TIM_EnableDMAReq_UPDATE(TIM4);
 
   /* Enable TIM4 Channel 3 DMA request */
-  LL_TIM_EnableDMAReq_CC1(TIM4);
+  LL_TIM_EnableDMAReq_CC3(TIM4);
 
   /**********************************/
   /* Start output signal generation */
